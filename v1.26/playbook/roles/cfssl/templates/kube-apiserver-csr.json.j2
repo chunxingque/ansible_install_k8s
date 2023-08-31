@@ -2,8 +2,6 @@
     "CN": "kubernetes",
     "hosts": [
       "127.0.0.1",
-      "10.100.0.1",
-      "10.200.0.1",
       {% for ip in SSL_hosts.k8s -%}
         "{{ip}}",
       {% endfor -%}

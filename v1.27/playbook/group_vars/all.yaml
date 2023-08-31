@@ -79,9 +79,12 @@ ha_server:
     state: BACKUP
     priority: 160
 
-# ssl证书hosts,master、etcd和vip的ip,node的ip按需求加入
+# ssl证书hosts,建议多添加几个ip，方便以后扩容
+# ssl_hosts.k8s必须填入service-cluster、master、etcd和vip的ip
+# ssl_hosts.etcd必须填入master、etcd的ip
 SSL_hosts:
   k8s:
+    - 10.200.0.1
     - 192.168.15.134
     - 192.168.15.135
     - 192.168.15.136
