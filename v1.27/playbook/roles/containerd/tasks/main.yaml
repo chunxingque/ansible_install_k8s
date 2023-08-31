@@ -1,0 +1,50 @@
+---
+- name: Unzip containerd
+  unarchive: src={{item}} dest=/
+  with_fileglob:
+    - roles/binary_package/cri-containerd-cni-*-linux-amd64.tar.gz
+
+- name: Unzip cni-plugins
+  unarchive: src={{item}} dest=/opt/cni/bin
+  with_fileglob:
+    - roles/binary_package/cni-plugins-linux-amd64-*.tgz
+
+- name: Copy the runc.amd64
+  copy: src=roles/binary_package/runc.amd64 dest=/usr/local/sbin/runc mode=0777
+
+- name: Create /etc/containerd
+  file: dest=/etc/containerd state=directory
+
+- name: containerd config
+  template: src=config.toml.j2 dest=/etc/containerd/config.toml
+  tags:
+  - update_config
+
+- name: copy cni config
+  template: src=roles/containerd/files/10-containerd-net.conflist dest=/etc/cni/net.d/10-containerd-net.conflist
+  ignore_errors: true
+
+- name: modules config
+  copy: 
+    src: roles/containerd/files/containerd.conf
+    dest: /etc/modules-load.d/containerd.conf
+
+- name: systemd modules
+  service: 
+    name: systemd-modules-load
+    state: restarted
+    enabled: yes
+
+- name: Containerd restart service
+  service: 
+    name: containerd
+    state: restarted
+    enabled: yes
+  tags:
+  - update_config
+
+- name: "pull {{ pause_image }}"
+  shell: "crictl pull {{ pause_image }}"
+  register: output
+- debug:
+    var: output.stdout_lines

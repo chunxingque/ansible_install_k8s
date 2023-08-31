@@ -1,0 +1,14 @@
+---
+- name: mkdir ~/.kube/
+  file:
+    path: ~/.kube/
+    state: directory
+    mode: '0755'
+
+- name: Copy the certificate
+  copy: 
+    src: "roles/cfssl/generate_files/{{item}}" 
+    dest: ~/.kube/config 
+    mode: "0600"
+  with_items:
+    - admin.kubeconfig

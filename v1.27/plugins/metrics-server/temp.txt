@@ -1,0 +1,3 @@
+      - name: ca-ssl
+        hostPath:
+          path: /etc/kubernetes/pki

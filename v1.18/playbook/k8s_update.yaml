@@ -1,0 +1,36 @@
+---
+- hosts: localhost
+  remote_user: root
+  gather_facts: false
+  tags: unarchive
+  
+  tasks:
+  - name: unarchive
+    shell: tar -zxvf roles/update_package/kubernetes-server-linux-amd64.tar.gz  --strip-components=3 -C roles/update_package/ kubernetes/server/bin/{{ item }}
+    with_items:
+      - kubectl
+      - kube-apiserver
+      - kube-controller-manager
+      - kube-scheduler
+      - kube-proxy
+      - kubelet
+
+- hosts: master
+  remote_user: root
+  gather_facts: false
+  vars:
+    role: master
+  roles:
+    - k8s_update
+  tags: master_k8s_update
+
+- hosts: all
+  remote_user: root
+  gather_facts: false
+  vars:
+    role: node
+  roles:
+    - k8s_update
+  tags: node_k8s_update
+
+

@@ -1,0 +1,24 @@
+---
+# - name: unzip kube-controller-manager
+#   shell: tar -xf {{ item }} --strip-components=3 -C /usr/local/bin kubernetes/server/bin/kube-controller-manager
+#   with_fileglob:
+#     - roles/binary_package/kubernetes-server-linux-amd64.tar.gz
+
+- name: copy kube-controller-manager
+  copy: src={{item}} dest=/usr/local/bin mode=0777
+  with_fileglob:
+    - roles/binary_package/kubernetes/server/bin/kube-controller-manager
+
+- name: Copy the certificate
+  copy: src=roles/cfssl/generate_files/{{item}} dest=/etc/kubernetes/
+  with_items:
+    - kube-controller-manager.kubeconfig
+
+- name: Generate kube-controller-manager.service
+  template: src=kube-controller-manager.service.j2 dest=/usr/lib/systemd/system/kube-controller-manager.service
+
+- name: Start the kube-controller-manager
+  service: daemon_reload=yes name=kube-controller-manager state=restarted enabled=yes
+
+
+

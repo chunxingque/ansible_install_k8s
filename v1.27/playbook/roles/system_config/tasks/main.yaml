@@ -1,0 +1,70 @@
+---
+- name: "update hostname"
+  hostname: 
+    name: "{{node_name}}"
+
+- name: Add mappings to /etc/hosts
+  lineinfile:
+    path: /etc/hosts
+    regexp: "{{ item.ip }}  {{ item.name }}"
+    line: "{{ item.ip }}  {{ item.name }}"
+  loop: "{{ master_server+node_server+add_server_group | flatten(1) }}"
+
+- name: Turn off the firewalld
+  service: name=firewalld state=stopped enabled=no
+
+- name: Close the selinux
+  lineinfile:
+    path: /etc/selinux/config
+    regexp: "^SELINUX="
+    line: "SELINUX=disabled"
+
+- name: Close swap space
+  shell: swapoff -a
+- name: annotation swap
+  replace:
+    path: /etc/fstab
+    regexp: '^([^#].*swap.*)$'
+    replace: '# \1'
+
+- name: add /usr/local/bin to PATH 
+  lineinfile:
+    path: /etc/profile
+    regexp: 'PATH=\$PATH:\/usr\/local\/bin$'
+    line: "export PATH=$PATH:/usr/local/bin"
+
+- name: create /etc/sysctl.d/kubernetes.conf
+  copy: src=kubernetes.conf dest=/etc/sysctl.d
+- name: run sysctl
+  shell: sysctl --system
+
+- name: copy ipvs.conf to /etc/modules-load.d
+  copy: src=ipvs.conf dest=/etc/modules-load.d
+- name: start systemd-modules-load.service
+  service: name=systemd-modules-load state=restarted enabled=yes
+
+- name: Install a list of packages
+  ansible.builtin.yum:
+    name:
+      - conntrack
+      - ipvsadm
+      - ipset
+      - iptables
+      - jq
+      - sysstat
+      - libseccomp
+      - rsync 
+      - wget
+      - psmisc
+      - lrzsz
+      - bash-completion
+    state: present
+
+- name: 'Create /etc/kubernetes/pki'
+  file: 
+    dest: /etc/kubernetes/pki
+    state: directory
+
+- name: copy reboot.sh
+  copy: src=reboot.sh dest=/etc mode=0700
+

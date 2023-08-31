@@ -1,0 +1,24 @@
+
+- name: update kubectl
+  copy: src=roles/update_package/kubectl dest=/usr/local/bin/ mode=0777
+  when: role == "master"
+
+- name: update kube-apiserver
+  copy: src=roles/update_package/kube-apiserver dest={{install_dir}}/kube-apiserver/bin mode=0777
+  when: role == "master"
+
+- name: update kube-controller-manager
+  copy: src=roles/update_package/kube-controller-manager dest={{install_dir}}/kube-controller-manager/bin mode=0777
+  when: role == "master"
+
+- name: update kube-scheduler
+  copy: src=roles/update_package/kube-scheduler dest={{install_dir}}/kube-scheduler/bin mode=0777
+  when: role == "master"
+
+- name: update kubelet
+  copy: src=roles/update_package/kubelet dest={{install_dir}}/kubelet/bin mode=0777
+  when: role == "node"
+
+- name: update kube-proxy
+  copy: src=roles/update_package/kube-proxy dest={{install_dir}}/kube-proxy/bin mode=0777
+  when: role == "node"

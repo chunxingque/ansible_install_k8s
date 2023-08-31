@@ -1,0 +1,31 @@
+---
+# - name: unzip kubelet
+#   shell: tar -xf {{ item }} --strip-components=3 -C /usr/local/bin kubernetes/server/bin/kubelet
+#   with_fileglob:
+#     - roles/binary_package/kubernetes-server-linux-amd64.tar.gz
+
+- name: copy kubelet
+  copy: src={{item}} dest=/usr/local/bin mode=0777
+  with_fileglob:
+    - roles/binary_package/kubernetes/server/bin/kubelet
+
+# metrics-server用到front-proxy-ca.pem
+- name: Copy the certificate
+  copy: src={{item}} dest=/etc/kubernetes/pki/
+  with_fileglob:
+    - roles/cfssl/generate_files/front-proxy-ca.pem
+    - roles/cfssl/generate_files/ca.pem
+
+- name: Copy bootstrap-kubelet.kubeconfig
+  copy: src={{item}} dest=/etc/kubernetes/
+  with_fileglob:
+    - roles/node_kubeconfig/generate_files/bootstrap-kubelet.kubeconfig
+
+- name: Generate kubelet-config.yaml
+  template: src=kubelet-config.yaml.j2 dest=/etc/kubernetes/kubelet-config.yaml
+
+- name: Generate kubelet.service
+  template: src=kubelet.service.j2 dest=/usr/lib/systemd/system/kubelet.service
+
+- name: Start the kubelet
+  service: daemon_reload=yes name=kubelet state=restarted enabled=yes

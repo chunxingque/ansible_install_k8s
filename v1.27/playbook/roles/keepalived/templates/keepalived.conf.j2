@@ -1,0 +1,38 @@
+! Configuration File for keepalived
+
+vrrp_script check_haproxy {
+        script "/etc/keepalived/check_haproxy.sh"
+        interval 3
+        weight -50
+        fall 2
+        rise 1
+}
+
+vrrp_instance K8S {
+    state {{state}}
+    interface {{network_card}}
+    virtual_router_id {{virtual_router_id}}
+    priority {{priority}}
+    advert_int 5
+    authentication {
+        auth_type PASS
+        auth_pass 1111
+    }
+    {% if groups['ha'] | length > 1 -%}
+    unicast_src_ip {{ inventory_hostname }}
+    unicast_peer {
+        {% for host in groups['ha'] %}
+        {%- if hostvars[host].inventory_hostname != inventory_hostname -%}
+            {{ hostvars[host].inventory_hostname }}
+        {% endif -%}
+        {% endfor -%}
+    }
+    {% endif -%}
+    virtual_ipaddress {
+        {{vip}}
+     }
+    track_script {
+        check_haproxy
+   }
+
+}

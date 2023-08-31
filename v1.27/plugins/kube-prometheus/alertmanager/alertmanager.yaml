@@ -1,0 +1,65 @@
+# alertmanager的配置文件
+---
+global:
+  resolve_timeout: 5m
+  http_config:
+    follow_redirects: true
+    enable_http2: true
+  smtp_hello: localhost
+  smtp_require_tls: true
+  pagerduty_url: https://events.pagerduty.com/v2/enqueue
+  opsgenie_api_url: https://api.opsgenie.com/
+  wechat_api_url: https://qyapi.weixin.qq.com/cgi-bin/
+  victorops_api_url: https://alert.victorops.com/integrations/generic/20131114/alert/
+  telegram_api_url: https://api.telegram.org
+  webex_api_url: https://webexapis.com/v1/messages
+route:
+  receiver: Default
+  group_by:
+  - namespace
+  continue: false
+  routes:
+  - receiver: Watchdog
+    matchers:
+    - alertname="Watchdog"
+    continue: false
+  - receiver: "null"
+    matchers:
+    - alertname="InfoInhibitor"
+    continue: false
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 1h
+inhibit_rules:
+- source_matchers:
+  - severity="critical"
+  target_matchers:
+  - severity=~"warning|info"
+  equal:
+  - namespace
+  - alertname
+- source_matchers:
+  - severity="warning"
+  target_matchers:
+  - severity="info"
+  equal:
+  - namespace
+  - alertname
+- source_matchers:
+  - alertname="InfoInhibitor"
+  target_matchers:
+  - severity="info"
+  equal:
+  - namespace
+receivers:
+- name: Default
+  webhook_configs:
+  - send_resolved: true
+    http_config:
+      follow_redirects: true
+      enable_http2: true
+    url: http://192.168.15.115:8081/adapter/wx
+    max_alerts: 0
+- name: Watchdog
+- name: "null"
+templates: []

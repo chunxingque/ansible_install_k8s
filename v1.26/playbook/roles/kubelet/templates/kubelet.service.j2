@@ -1,0 +1,17 @@
+[Unit]
+Description=Kubernetes Kubelet
+After=docker.service
+
+[Service]
+ExecStart=/usr/local/bin/kubelet --hostname-override={{node_name}} \
+    --container-runtime-endpoint=unix:///run/containerd/containerd.sock \
+    --kubeconfig=/etc/kubernetes/kubelet.kubeconfig \
+    --bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.kubeconfig \
+    --config=/etc/kubernetes/kubelet-config.yaml \
+    --cert-dir=/etc/kubernetes/pki
+Restart=on-failure
+RestartSec=10
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

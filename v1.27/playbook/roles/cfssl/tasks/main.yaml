@@ -1,0 +1,24 @@
+--- 
+- name: Generate the ETCD certificate profile
+  template: src={{item}} dest=roles/cfssl/generate_files/etcd-csr.json
+  with_items:
+    - etcd-csr.json.j2
+  when: cert == "etcd"
+
+- name: Generate the ETCD certificate
+  shell: cd roles/cfssl/files && /bin/bash generate_etcd_cert.sh
+  when: cert == "etcd"
+
+- name: Generate the kube-apiserver-csr.json file
+  template: src={{item}} dest=roles/cfssl/generate_files/kube-apiserver-csr.json
+  with_items:
+    - kube-apiserver-csr.json.j2
+  when: cert == "k8s"
+
+- name: Generate the k8s certificate
+  shell: cd roles/cfssl/files && /bin/bash generate_k8s_cert.sh
+  when: cert == "k8s"
+
+- name: Generate master kubeconfig
+  shell: cd roles/cfssl/files && /bin/bash kubeconfig_master.sh
+  when: cert == "k8s"

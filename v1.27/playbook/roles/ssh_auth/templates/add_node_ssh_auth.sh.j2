@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+{% for item in add_server_group %}
+sshpass -p '{{server_passwd}}' ssh-copy-id -o StrictHostKeyChecking=no {{server_user}}@{{item.ip}}
+{% endfor %}

@@ -1,0 +1,33 @@
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  labels:
+    app.kubernetes.io/name: kube-controller-manager
+  name: kube-controller-manager
+  namespace: kube-system
+subsets:
+- addresses:
+  - ip: 192.168.15.241
+  - ip: 192.168.15.242
+  - ip: 192.168.15.243       
+  ports:
+  - name: https-metrics
+    port: 10257
+    protocol: TCP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: kube-system
+  name: kube-controller-manager
+  labels:
+    app.kubernetes.io/name: kube-controller-manager
+spec:
+  type: ClusterIP
+  ports:
+  - name: https-metrics
+    port: 10257
+    targetPort: 10257
+    protocol: TCP

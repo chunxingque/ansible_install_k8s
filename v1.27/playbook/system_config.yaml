@@ -1,0 +1,30 @@
+---
+- hosts: localhost
+  remote_user: root
+  gather_facts: false
+  vars:
+    - mode: new
+  roles:
+    - ssh_auth
+  tags: ssh_auth
+
+- hosts: master:node
+  remote_user: root
+  gather_facts: false
+  roles:
+    - chrony
+  tags: chrony
+
+- hosts: master:node
+  remote_user: root
+  gather_facts: false
+  roles:
+    - system_config
+  tags: system_config
+
+- hosts: master:node
+  remote_user: root
+  gather_facts: false
+  roles:
+    - containerd
+  tags: containerd_install

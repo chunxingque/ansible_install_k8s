@@ -1,0 +1,7 @@
+- hosts: localhost
+  remote_user: root
+  gather_facts: false
+  tags: ansible_hosts
+  tasks:
+    - name: generate k8s hosts
+      template: src=ansible_hosts.j2 dest=../k8s_hosts

@@ -1,0 +1,15 @@
+---
+- hosts: 192.168.15.240
+  remote_user: root
+  gather_facts: F
+
+  tasks:
+    - name: unzip kubectl 
+      unarchive: 
+        src: "{{ item }}"
+        extra_opts: ["--strip-components=3"]
+        dest: /usr/local/bin/
+        include: 
+        - kubernetes/server/bin/kubectl
+      with_fileglob:
+        - playbook/roles/binary_package/kubernetes-server-linux-amd64.tar.gz

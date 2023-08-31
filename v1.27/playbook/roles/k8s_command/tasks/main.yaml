@@ -1,0 +1,21 @@
+---
+- name: copy cfssl
+  copy: src=roles/binary_package/{{item}} dest=/usr/local/bin mode=0777
+  with_items:
+    - cfssl
+    - cfssljson
+    - cfssl-certinfo
+
+- name: copy helm
+  copy: 
+    src: "{{item}}"
+    dest: /usr/local/bin 
+    mode: 0777
+  with_fileglob:
+    - roles/binary_package/linux-amd64/helm
+
+- name: copy kubectl
+  copy: src={{item}} dest=/usr/local/bin mode=0777
+  with_fileglob:
+    - roles/binary_package/kubernetes/server/bin/kubectl
+

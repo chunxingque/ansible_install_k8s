@@ -1,0 +1,26 @@
+- hosts: localhost
+  remote_user: root
+  gather_facts: false
+  vars:
+    - pause_image: registry.aliyuncs.com/k8sxio/pause:3.8
+  tags: export_image
+  tasks:
+  - name: pull images
+    shell: "crictl pull {{ pause_image }}"
+  - name: export pause images
+    shell: "ctr -n k8s.io i export {{ playbook_dir }}/roles/binary_package/pause.tar {{ pause_image }}"
+
+- hosts: master:node
+  remote_user: root
+  gather_facts: false
+  tags: import_image
+  tasks:
+  - name: copy pause.tar
+    copy: 
+      src: "{{ item }}"
+      dest: /tmp/
+    with_fileglob:
+    - roles/binary_package/pause.tar
+
+  - name: import pause.tar
+    shell: "ctr -n k8s.io i import /tmp/pause.tar"

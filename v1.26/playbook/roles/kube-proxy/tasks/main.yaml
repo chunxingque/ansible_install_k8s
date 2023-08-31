@@ -1,0 +1,24 @@
+---
+# - name: unzip kube-proxy
+#   shell: tar -xf {{ item }} --strip-components=3 -C /usr/local/bin kubernetes/server/bin/kube-proxy
+#   with_fileglob:
+#     - roles/binary_package/kubernetes-server-linux-amd64.tar.gz
+
+- name: copy kube-proxy
+  copy: src={{item}} dest=/usr/local/bin mode=0777
+  with_fileglob:
+    - roles/binary_package/kubernetes/server/bin/kube-proxy
+
+- name: Copy kube-proxy.kubeconfig
+  copy: src={{item}} dest=/etc/kubernetes/
+  with_fileglob:
+  - roles/node_kubeconfig/generate_files/kube-proxy.kubeconfig
+
+- name: Generate kube-proxy.yml
+  template: src=kube-proxy.yml.j2 dest=/etc/kubernetes/kube-proxy.yml
+
+- name: Generate configuration files
+  template: src=kube-proxy.service.j2 dest=/usr/lib/systemd/system/kube-proxy.service
+
+- name: Start the kube-proxy
+  service: daemon_reload=yes name=kube-proxy state=restarted enabled=yes

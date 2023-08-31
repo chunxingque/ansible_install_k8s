@@ -1,0 +1,73 @@
+---
+
+- hosts: localhost
+  remote_user: root
+  gather_facts: false
+  vars:
+    - mode: add_node
+  roles:
+    - ssh_auth
+  tags: ssh_auth
+
+- hosts: new_node
+  remote_user: root
+  gather_facts: false
+  roles:
+    - chrony
+  tags: chrony
+
+- hosts: new_node
+  remote_user: root
+  gather_facts: false
+  roles:
+    - system_config
+  tags: system_config
+
+# 所有旧节点添加hosts
+- hosts: master:node
+  remote_user: root
+  gather_facts: false
+  tags: system_config
+  tasks:
+  - name: Add mappings to /etc/hosts
+    lineinfile:
+      path: /etc/hosts
+      regexp: "{{ item.ip }}  {{ item.name }}"
+      line: "{{ item.ip }}  {{ item.name }}"
+    loop: "{{ add_server_group | flatten(1) }}"
+
+- hosts: new_node
+  remote_user: root
+  gather_facts: false
+  roles:
+    - containerd
+  tags: containerd_install
+
+- hosts: new_node
+  remote_user: root
+  gather_facts: false
+  tags: import_image
+  tasks:
+  - name: copy pause.tar
+    copy: 
+      src: "{{ item }}"
+      dest: /tmp/
+    with_fileglob:
+    - roles/binary_package/pause.tar
+
+  - name: import pause.tar
+    shell: "ctr -n k8s.io i import /tmp/pause.tar"
+
+- hosts: new_node
+  remote_user: root
+  gather_facts: false
+  roles:
+    - kubelet
+  tags: kubelet
+
+- hosts: new_node
+  remote_user: root
+  gather_facts: false
+  roles:
+    - kube-proxy
+  tags: kube-proxy
