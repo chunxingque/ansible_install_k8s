@@ -23,23 +23,13 @@ ansible-playbook playbook/update_certificate.yaml --tags k8s-node-restart -i k8s
 
 echo -e "################################## \033[41m restart cni \033[0m #####################################################"
 # calico
-kubectl rollout restart Deployment calico-kube-controllers -n kube-system
-kubectl rollout restart DaemonSet calico-node -n kube-system
+# kubectl rollout restart Deployment calico-kube-controllers -n kube-system
+# kubectl rollout restart DaemonSet calico-node -n kube-system
 
 # cilium
-# kubectl rollout restart Deployment cilium-operator -n kube-system
-# kubectl rollout restart DaemonSet cilium -n kube-system
+kubectl rollout restart Deployment cilium-operator -n kube-system
+kubectl rollout restart DaemonSet cilium -n kube-system
 # kubectl rollout restart Deployment hubble-ui -n kube-system
 
 echo -e "################################## \033[41m restart metrics-server \033[0m #############################################"
 kubectl rollout restart Deployment metrics-server -n kube-system
-
-# 检查k8s集群
-# tail -200f /var/log/messages
-# kubectl get nodes
-# kubectl get cs
-# systemctl status kube-apiserver.service -l
-# systemctl status kube-controller-manager.service -l
-# systemctl status kube-scheduler.service -l
-# systemctl status kube-proxy.service -l
-# systemctl status kubelet.service -l

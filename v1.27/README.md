@@ -100,7 +100,6 @@ sh 2_manage_config.sh
 4. 生成ssh秘钥
 5. 管理机对所有节点进行ssh免密认证
 
-
 ## 节点初始化配置
 
 任务：
@@ -124,7 +123,6 @@ sh 3_system_config.sh
 ```
 systemctl status containerd -l
 ```
-
 
 ## 安装k8s集群
 
@@ -168,7 +166,6 @@ kubectl get cs
 tail -200f /var/log/messages
 ```
 
-
 ### node组件安装
 
 node组件安装
@@ -182,8 +179,6 @@ node组件安装
 ```
 sh 4-2_k8s_node_install.sh
 ```
-
-
 
 node节点检查是否有报错日志
 
@@ -200,12 +195,9 @@ master上检查是否加入集群
 kubectl get nodes
 ```
 
-
-
 ## k8s插件安装
 
 注意：k8s插件安装，请先读脚本，再根据实际情况执行，因为有些要下载文件，可能因为网络问题无法下载，需要手动下载；有些镜像无法拉取，需要修改成可以拉取镜像。
-
 
 ### cni网络插件
 
@@ -213,7 +205,6 @@ cilium和calico都是pod跨主机网络通信的插件，选一个即可
 
 * calico： 比较稳定
 * cilium： 基于ebpf，内核要求Linux kernel >= 4.9.17，性能比较好，功能强大
-
 
 #### cilium
 
@@ -236,7 +227,6 @@ sh hubble_install.sh
 kubectl get pods -o wide -n kube-system
 ```
 
-
 #### calico
 
 容器跨主机网络通信
@@ -245,8 +235,6 @@ kubectl get pods -o wide -n kube-system
 cd plugins/calico
 sh calico_install.sh
 ```
-
-
 
 ### coredns
 
@@ -265,7 +253,6 @@ sh coredns_install.sh
 kubectl get pods -o wide -n kube-system
 ```
 
-
 ### metrics-server
 
 k8s监控指标,安装前请查看脚本，需要修改镜像
@@ -282,7 +269,6 @@ kubectl get pods -o wide -n kube-system
 kubectl logs -f --tail 200 metrics-server-xx  -n kube-system
 kubectl top nodes
 ```
-
 
 ### nginx
 
@@ -303,7 +289,6 @@ kubectl get svc
 访问地址：
 
 curl  http://ip:30080
-
 
 ### ingress-nginx
 
@@ -464,6 +449,12 @@ kubectl get pods  -o wide -n kube-system
 
 ## 更新自签名证书
 
+功能:
+
+* 更新etcd的证书
+* 更新k8s集群的证书
+
+
 多次测试，更新ssl签名没啥问题了。但是有一定的风险，别轻易操作
 
 命令：
@@ -472,10 +463,26 @@ kubectl get pods  -o wide -n kube-system
 sh update_certificate.sh
 ```
 
-功能:
 
-* 更新etcd的证书
-* 更新k8s集群的证书
+
+检查k8s集群
+
+```
+# 检查日志是否有报错
+tail -200f /var/log/messages
+# 检查节点是否正常
+kubectl get nodes
+# 检查组件是否正常
+kubectl get cs
+# 检查组件日志是否报错
+systemctl status kube-apiserver.service -l
+systemctl status kube-controller-manager.service -l
+systemctl status kube-scheduler.service -l
+systemctl status kube-proxy.service -l
+systemctl status kubelet.service -l
+```
+
+
 
 # k8s集群管理
 
