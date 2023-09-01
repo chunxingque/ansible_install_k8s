@@ -1,0 +1,28 @@
+[master]
+{% for item in master_server %}
+{{item.ip}} node_name={{item.name}}
+{% endfor %}
+
+[node]
+{% if node_server %}
+{% for item in node_server %}
+{{item.ip}} node_name={{item.name}}
+{% endfor %}
+{% endif %}
+
+[etcd]
+{% for item in etcd_server %}
+{{item.ip}} etcd_name={{item.name}}
+{% endfor %}
+
+[ha]
+{% if ha_server %}
+{% for item in ha_server %}
+{{item.ip}} state={{item.state}} priority={{item.priority}}
+{% endfor %}
+{% endif %}
+
+[new_node]
+{% for item in add_server_group %}
+{{item.ip}} node_name={{item.name}}
+{% endfor %}

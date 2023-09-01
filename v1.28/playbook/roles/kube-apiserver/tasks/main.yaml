@@ -1,0 +1,33 @@
+---
+# - name: unzip kube-apiserver
+#   shell: tar -xf {{ item }} --strip-components=3 -C /usr/local/bin kubernetes/server/bin/kube-apiserver
+#   with_fileglob:
+#     - roles/binary_package/kubernetes-server-linux-amd64.tar.gz
+
+- name: copy kube-apiserver
+  copy: src={{item}} dest=/usr/local/bin mode=0777
+  with_fileglob:
+    - roles/binary_package/kubernetes/server/bin/kube-apiserver
+
+- name: Copy the certificate
+  copy: src=roles/cfssl/generate_files/{{item}} dest=/etc/kubernetes/pki/
+  with_items:
+    - etcd-ca.pem
+    - etcd.pem
+    - etcd-key.pem
+    - ca.pem
+    - ca-key.pem
+    - kube-apiserver.pem
+    - kube-apiserver-key.pem
+    - front-proxy-ca.pem
+    - front-proxy-client.pem
+    - front-proxy-client-key.pem
+    - sa.key
+    - sa.pub
+
+- name: Generate kube-apiserver.service
+  template: src=kube-apiserver.service.j2 dest=/usr/lib/systemd/system/kube-apiserver.service
+
+- name: Start the kube-apiserver
+  service: daemon_reload=yes name=kube-apiserver state=restarted enabled=yes
+

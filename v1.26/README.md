@@ -13,10 +13,15 @@ ansible部署二进制k8s集群,适用于1.26.x版本
 
 ## 要求
 
-1. 管理主机需要联网，安装ansible、wget等rpm包，下载k8s二进制包，pause镜像
-2. 所有节点都需要访问到基本的rpm软件仓库或者内网的代理rpm仓库
+1. 系统要求：centos系统
+2. 管理主机需要联网，安装ansible、wget等rpm包，下载k8s二进制包
+3. 所有节点都需要访问到基本的rpm软件仓库或者内网的代理rpm仓库
 
-可以提前手动安装rpm包
+注意：
+
+* 仅在centos7.9内核为5.4上测试，建议系统内核通过elrepo升级到5.4
+
+所有节点所需的rpm包，可以提前手动安装以下rpm包
 
 k8s相关依赖
 
@@ -24,12 +29,17 @@ k8s相关依赖
 yum install curl conntrack ipvsadm ipset iptables sysstat libseccomp rsync jq psmisc lrzsz  bash-completion -y
 ```
 
+时间同步
+
+```
+yum install chrony
+```
+
 keepalive与haproxy
 
 ```
 yum install keepalive
 yum install haproxy
-yum install chrony
 ```
 
 nfs
@@ -98,31 +108,35 @@ sh 2_manage_config.sh
 2. 生成 ansible hosts
 3. 生成主机hosts_k8s
 4. 生成ssh秘钥
-5. 配置免密ssh
+5. 管理机对所有节点进行ssh免密认证
 
-
-
-## 系统初始化配置
-
-```
-sh 3_system_config.sh
-```
+## 节点初始化配置
 
 任务：
 
 1. 在所有服务器上，初始化服务器环境，添加hosts,关闭防火墙、swap和selinux,配置nptdate时间同步
 2. 在所有服务器上，设置hostname
-3. 在所有服务器上，安装docker
+3. 在所有服务器上，安装containerd
 4. 在master服务器上，安装管理k8s的命令工具，helm，kubectl，kubeadm，cfssl
 5. 重启所有服务器
+
+执行脚本
+
+```
+sh 3_system_config.sh
+```
+
+注意：containerd的版本尽量与脚本要求一致，可能其他版本config.toml配置文件有所改变。
+
+检查containerd
+
+```
+systemctl status containerd -l
+```
 
 ## 安装k8s集群
 
 ### master组件安装
-
-```
-sh 4-1_k8s_master_install.sh
-```
 
 部署k8s集群(二进制部署)
 
@@ -131,7 +145,44 @@ sh 4-1_k8s_master_install.sh
 3. 部署master插件：kube-apiserver、kube-controller-manager、kube-scheduler
 4. 部署高可用的haproxy、keepalived
 
+执行脚本
+
+```
+sh 4-1_k8s_master_install.sh
+```
+
 注意： 安装完etcd后，终端因为没有重新启动，需要重新打开一个会话终端，或者 `source /etc/profile.d/etcdctl.sh`，把etcd环境变量加载到当前会话，才能执行 `etcdctl member list --write-out=table` 检查etcd集群
+
+检查etcd
+
+```
+systemctl status etcd -l
+source /etc/profile.d/etcdctl.sh 
+etcdctl member list --write-out=table
+etcdctl endpoint health --write-out=table
+```
+
+检查keepalive和haproxy
+
+```
+systemctl status keepalived -l
+systemctl status haproxy -l
+```
+
+检查master组件是否安装好
+
+```
+systemctl status kube-apiserver
+systemctl status kube-controller-manager -l
+systemctl status kube-scheduler -l
+kubectl get cs
+```
+
+检查master组件是否有报错
+
+```
+tail -200f /var/log/messages
+```
 
 ### node组件安装
 
@@ -153,17 +204,17 @@ node节点检查是否有报错日志
 systemctl status kubelet -l
 systemctl status kube-proxy -l
 tail -200f /var/log/messages
-
 ```
 
-master上检查是否加入集群，cni组件是否安装正常，cni组件：cilium或者calico
+master上检查是否加入集群
 
 ```
 kubectl get nodes
-kubectl get pods  -o wide -n kube-system
 ```
 
 ## k8s插件安装
+
+注意：k8s插件安装，请先读脚本，再根据实际情况执行，因为有些要下载文件，可能因为网络问题无法下载，需要手动下载；有些镜像无法拉取，需要修改成可以的拉取镜像。
 
 ### cni网络插件
 
@@ -174,7 +225,7 @@ cilium和calico都是pod跨主机网络通信的插件，选一个即可
 
 #### cilium
 
-安装
+安装cilium,需要修改脚本的镜像地址
 
 ```
 cd plugins/cilium
@@ -187,9 +238,17 @@ sh cilium_install.sh
 sh hubble_install.sh
 ```
 
+检查
+
+```
+kubectl get pods -o wide -n kube-system
+```
+
 #### calico
 
 容器跨主机网络通信
+
+安装calico，需要修改镜像地址和pod的网段
 
 ```
 cd plugins/calico
@@ -198,20 +257,36 @@ sh calico_install.sh
 
 ### coredns
 
-k8s dns服务
+k8s dns服务，安装前请修改脚本，需要修改coredns镜像地址和外部的dns地址，可以下载最新的coredns的yaml安装资源。
+
+执行脚本
 
 ```
 cd plugins/coredns
 sh coredns_install.sh
 ```
 
+检查coredns
+
+```
+kubectl get pods -o wide -n kube-system
+```
+
 ### metrics-server
 
-k8s监控指标
+k8s监控指标,安装前请查看脚本，需要修改镜像
 
 ```
 cd plugins/metrics-server
 sh metrics-server_install.sh
+```
+
+检查
+
+```
+kubectl get pods -o wide -n kube-system
+kubectl logs -f --tail 200 metrics-server-xx  -n kube-system
+kubectl top nodes
 ```
 
 ### nginx
@@ -221,6 +296,13 @@ sh metrics-server_install.sh
 ```
 cd plugins/nginx
 kubectl apply -f nginx.yaml
+```
+
+检查
+
+```
+kubectl get pods 
+kubectl get svc
 ```
 
 访问地址：
@@ -386,6 +468,11 @@ kubectl get pods  -o wide -n kube-system
 
 ## 更新自签名证书
 
+功能:
+
+* 更新etcd的证书
+* 更新k8s集群的证书
+
 多次测试，更新ssl签名没啥问题了。但是有一定的风险，别轻易操作
 
 命令：
@@ -394,10 +481,30 @@ kubectl get pods  -o wide -n kube-system
 sh update_certificate.sh
 ```
 
-功能:
+ETCD集群健康检查
 
-* 更新etcd的证书
-* 更新k8s集群的证书
+```
+etcdctl member list --write-out=table
+etcdctl endpoint health --write-out=table
+kubectl get cs
+```
+
+检查k8s集群
+
+```
+# 检查日志是否有报错
+tail -200f /var/log/messages
+# 检查节点是否正常
+kubectl get nodes
+# 检查组件是否正常
+kubectl get cs
+# 检查组件日志是否报错
+systemctl status kube-apiserver.service -l
+systemctl status kube-controller-manager.service -l
+systemctl status kube-scheduler.service -l
+systemctl status kube-proxy.service -l
+systemctl status kubelet.service -l
+```
 
 # k8s集群管理
 
@@ -408,5 +515,5 @@ sh update_certificate.sh
 修改ansible-playbook playbook/containerd_manage.yaml的hosts，更新config.toml配置
 
 ```
-ansible-playbook ansible-playbook playbook/containerd_manage.yaml --tags=update_config
+ansible-playbook -i k8s_hosts playbook/containerd_manage.yaml --tags=update_config
 ```

@@ -9,14 +9,25 @@ ansible部署二进制k8s集群,适用于1.27.x版本
 3. 安装或者添加node节点
 4. 更新自签证书
 
+
+部署变化：
+
+* 相较于v1.26版本，删除了kube-controller-manager的--pod-eviction-timeout的运行参数
+
+
 # 使用说明
 
 ## 要求
 
-1. 管理主机需要联网，安装ansible、wget等rpm包，下载k8s二进制包
-2. 所有节点都需要访问到基本的rpm软件仓库或者内网的代理rpm仓库
+1. 系统要求：centos系统
+2. 管理主机需要联网，安装ansible、wget等rpm包，下载k8s二进制包
+3. 所有节点都需要访问到基本的rpm软件仓库或者内网的代理rpm仓库
 
-所有的节点可以提前手动安装一些rpm包
+注意：
+
+* 仅在centos7.9内核为5.4上测试，建议系统内核通过elrepo升级到5.4
+
+所有节点所需的rpm包，可以提前手动安装以下rpm包
 
 k8s相关依赖
 
@@ -24,12 +35,17 @@ k8s相关依赖
 yum install curl conntrack ipvsadm ipset iptables sysstat libseccomp rsync jq psmisc lrzsz  bash-completion -y
 ```
 
+时间同步
+
+```
+yum install chrony
+```
+
 keepalive与haproxy
 
 ```
 yum install keepalive
 yum install haproxy
-yum install chrony
 ```
 
 nfs
@@ -146,9 +162,17 @@ sh 4-1_k8s_master_install.sh
 检查etcd
 
 ```
+systemctl status etcd -l
 source /etc/profile.d/etcdctl.sh 
 etcdctl member list --write-out=table
 etcdctl endpoint health --write-out=table
+```
+
+检查keepalive和haproxy
+
+```
+systemctl status keepalived -l
+systemctl status haproxy -l
 ```
 
 检查master组件是否安装好
@@ -186,7 +210,6 @@ node节点检查是否有报错日志
 systemctl status kubelet -l
 systemctl status kube-proxy -l
 tail -200f /var/log/messages
-
 ```
 
 master上检查是否加入集群
@@ -197,7 +220,7 @@ kubectl get nodes
 
 ## k8s插件安装
 
-注意：k8s插件安装，请先读脚本，再根据实际情况执行，因为有些要下载文件，可能因为网络问题无法下载，需要手动下载；有些镜像无法拉取，需要修改成可以拉取镜像。
+注意：k8s插件安装，请先读脚本，再根据实际情况执行，因为有些要下载文件，可能因为网络问题无法下载，需要手动下载；有些镜像无法拉取，需要修改成可以的拉取镜像。
 
 ### cni网络插件
 
@@ -208,7 +231,7 @@ cilium和calico都是pod跨主机网络通信的插件，选一个即可
 
 #### cilium
 
-安装
+安装cilium,需要修改脚本的镜像地址
 
 ```
 cd plugins/cilium
@@ -230,6 +253,8 @@ kubectl get pods -o wide -n kube-system
 #### calico
 
 容器跨主机网络通信
+
+安装calico，需要修改镜像地址和pod的网段
 
 ```
 cd plugins/calico
@@ -454,7 +479,6 @@ kubectl get pods  -o wide -n kube-system
 * 更新etcd的证书
 * 更新k8s集群的证书
 
-
 多次测试，更新ssl签名没啥问题了。但是有一定的风险，别轻易操作
 
 命令：
@@ -463,7 +487,13 @@ kubectl get pods  -o wide -n kube-system
 sh update_certificate.sh
 ```
 
+ETCD集群健康检查
 
+```
+etcdctl member list --write-out=table
+etcdctl endpoint health --write-out=table
+kubectl get cs
+```
 
 检查k8s集群
 
@@ -481,8 +511,6 @@ systemctl status kube-scheduler.service -l
 systemctl status kube-proxy.service -l
 systemctl status kubelet.service -l
 ```
-
-
 
 # k8s集群管理
 

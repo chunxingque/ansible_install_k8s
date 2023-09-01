@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+{% for item in master_server %}
+sshpass -p '{{server_passwd}}' ssh-copy-id -o StrictHostKeyChecking=no {{server_user}}@{{item.ip}}
+{% endfor %}
+{% if node_server %}
+{% for item in node_server %}
+sshpass -p '{{server_passwd}}' ssh-copy-id -o StrictHostKeyChecking=no {{server_user}}@{{item.ip}}
+{% endfor %}
+{% endif %}

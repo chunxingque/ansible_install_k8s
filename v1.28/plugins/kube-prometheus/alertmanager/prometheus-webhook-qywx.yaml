@@ -1,0 +1,41 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    run: prometheus-webhook-qywx
+  name: prometheus-webhook-qywx
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      run: prometheus-webhook-qywx
+  template:
+    metadata:
+      labels:
+        run: prometheus-webhook-qywx
+    spec:
+      containers:
+        - name: prometheus-webhook-dingtalk
+          image: registry.cn-hangzhou.aliyuncs.com/guyongquan/webhook-adapter
+          args:
+            - --adapter=/app/prometheusalert/wx.js=/adapter/wx=https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=c3578c16-1a8e-ssssdddd8888888 #注意变更这个地址，即企业微信机器人的webhook地址
+          ports:
+            - containerPort: 80
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: prometheus-webhook-qywx
+  name: prometheus-webhook-qywx
+  namespace: monitoring
+spec:
+  ports:
+    - port: 8060
+      protocol: TCP
+      targetPort: 80
+  selector:
+    run: prometheus-webhook-qywx
+  type: ClusterIP

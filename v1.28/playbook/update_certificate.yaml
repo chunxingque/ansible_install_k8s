@@ -1,0 +1,131 @@
+- hosts: etcd
+  remote_user: root
+  gather_facts: false
+  tags: etcd
+  
+  tasks:
+    - name: Copy the certificate
+      copy: src=roles/cfssl/generate_files/{{item}} dest=/etc/etcd/ssl/
+      with_items:
+      - etcd-ca.pem
+      - etcd-ca-key.pem
+      - etcd.pem
+      - etcd-key.pem
+    - name: restart the etcd
+      service: daemon_reload=yes name=etcd state=restarted  enabled=yes
+
+- hosts: master
+  remote_user: root
+  gather_facts: false
+  tags: etcd
+  
+  tasks:
+    - name: Copy certificate to kube-apiserver
+      copy: src=roles/cfssl/generate_files/{{item}} dest=/etc/kubernetes/pki/
+      with_items:
+      - etcd-ca.pem
+      - etcd.pem
+      - etcd-key.pem
+    - name: restart the kube-apiserver
+      service: daemon_reload=yes name=kube-apiserver state=restarted enabled=yes
+
+
+- hosts: master
+  remote_user: root
+  gather_facts: false
+  tags: k8s-master
+  
+  tasks:
+    - name: Copy k8s certificate
+      copy: src=roles/cfssl/generate_files/{{item}} dest=/etc/kubernetes/pki/
+      with_items:
+        - etcd-ca.pem
+        - etcd.pem
+        - etcd-key.pem
+        - ca.pem
+        - ca-key.pem
+        - kube-apiserver.pem
+        - kube-apiserver-key.pem
+        - front-proxy-ca.pem
+        - front-proxy-client.pem
+        - front-proxy-client-key.pem
+        - sa.key
+        - sa.pub
+
+    - name: Copy kube-controller-manager.kubeconfig
+      copy: src=roles/cfssl/generate_files/{{item}} dest=/etc/kubernetes/
+      with_items:
+        - kube-controller-manager.kubeconfig
+
+    - name: Copy kube-scheduler.kubeconfig
+      copy: src=roles/cfssl/generate_files/{{item}} dest=/etc/kubernetes/
+      with_items:
+        - kube-scheduler.kubeconfig
+
+    - name: Copy admin.kubeconfig
+      copy: src=roles/cfssl/generate_files/{{item}} dest=~/.kube/config
+      with_items:
+        - admin.kubeconfig
+
+- hosts: localhost
+  remote_user: root
+  gather_facts: false
+  tags: node_init
+  tasks:
+    # 重建ssl时,需要删除kube-proxy这个秘钥，重新创建,不然会报错
+    - name: delete secret kube-proxy
+      shell: kubectl delete secret  kube-proxy -n kube-system
+
+- hosts: master:node
+  remote_user: root
+  gather_facts: false
+  tags: k8s-node
+  tasks:
+    - name: Copy node kubeconfig
+      copy: src={{item}} dest=/etc/kubernetes/
+      with_fileglob:
+        - roles/node_kubeconfig/generate_files/bootstrap-kubelet.kubeconfig
+        - roles/node_kubeconfig/generate_files/kube-proxy.kubeconfig
+
+    # metrics-server用到front-proxy-ca.pem
+    - name: Copy the certificate
+      copy: src={{item}} dest=/etc/kubernetes/pki/
+      with_fileglob:
+        - roles/cfssl/generate_files/front-proxy-ca.pem
+        - roles/cfssl/generate_files/ca.pem
+
+- hosts: master
+  remote_user: root
+  gather_facts: false
+  tags: k8s-master-restart
+  tasks:
+    - name: restart the kube-apiserver
+      service: daemon_reload=yes name=kube-apiserver state=restarted enabled=yes
+
+    - name: restart the kube-controller-manager
+      service: daemon_reload=yes name=kube-controller-manager state=restarted enabled=yes
+    
+    - name: restart the kube-scheduler
+      service: daemon_reload=yes name=kube-scheduler state=restarted enabled=yes
+
+- hosts: master:node
+  remote_user: root
+  gather_facts: false
+  tags: k8s-node-restart
+  tasks:
+    # 删除旧的kubelet的所有证书
+    - name: 'Remove kubelet*'
+      shell: rm -vf /etc/kubernetes/pki/kubelet*
+      register: output
+    - debug:
+        var: output.stdout_lines
+    - name: "remove kubelet.kubeconfig"
+      file: 
+        path: /etc/kubernetes/kubelet.kubeconfig
+        state: absent
+         
+    - name: restart the kubelet
+      service: daemon_reload=yes name=kubelet state=restarted enabled=yes
+      
+    - name: restart the kube-proxy
+      service: daemon_reload=yes name=kube-proxy state=restarted enabled=yes

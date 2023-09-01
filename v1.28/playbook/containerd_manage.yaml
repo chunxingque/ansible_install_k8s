@@ -1,0 +1,5 @@
+- hosts: new_node
+  remote_user: root
+  gather_facts: false
+  roles:
+    - containerd

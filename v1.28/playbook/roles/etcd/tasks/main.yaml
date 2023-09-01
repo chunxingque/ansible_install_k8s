@@ -1,0 +1,35 @@
+---
+- name: Create a directory
+  file: dest=/etc/etcd/{{item}} state=directory
+  with_items:
+    - ssl
+
+- name: Copy the certificate
+  copy: src=roles/cfssl/generate_files/{{item}} dest=/etc/etcd/ssl/
+  with_items:
+  - etcd-ca.pem
+  - etcd-ca-key.pem
+  - etcd.pem
+  - etcd-key.pem
+
+- name: copy etcd binary
+  copy: 
+    src: "{{item}}" 
+    dest: /usr/local/bin
+    mode: 0777
+  with_fileglob:
+    - roles/binary_package/etcd/etcd
+    - roles/binary_package/etcd/etcdctl
+    - roles/binary_package/etcd/etcdutl
+
+- name: Generate etcd.config.yml
+  template: src=etcd.config.yml.j2 dest=/etc/etcd/etcd.config.yml
+
+- name: Copy etcd.service
+  copy: src=roles/etcd/files/etcd.service dest=/usr/lib/systemd/system/etcd.service
+
+- name: Copy etcdctl.sh
+  copy: src=roles/etcd/files/etcdctl.sh dest=/etc/profile.d/etcdctl.sh
+
+- name: Start the etcd
+  service: daemon_reload=yes name=etcd state=restarted  enabled=yes

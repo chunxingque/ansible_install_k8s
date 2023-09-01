@@ -1,0 +1,35 @@
+---
+- hosts: localhost
+  remote_user: root
+  gather_facts: false
+  roles:
+    - node_kubeconfig
+  tags: node_kubeconfig
+
+- hosts: master
+  remote_user: root
+  gather_facts: false
+  roles:
+    - kubelet
+  tags: master-kubelet
+
+- hosts: node
+  remote_user: root
+  gather_facts: false
+  roles:
+    - kubelet
+  tags: node-kubelet
+
+- hosts: master
+  remote_user: root
+  gather_facts: false
+  roles:
+    - kube-proxy
+  tags: master-kube-proxy
+
+- hosts: node
+  remote_user: root
+  gather_facts: false
+  roles:
+    - kube-proxy
+  tags: node-kube-proxy

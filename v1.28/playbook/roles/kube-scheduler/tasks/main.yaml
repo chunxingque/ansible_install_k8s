@@ -1,0 +1,23 @@
+---
+# - name: unzip kube-scheduler
+#   shell: tar -xf {{ item }} --strip-components=3 -C /usr/local/bin kubernetes/server/bin/kube-scheduler
+#   with_fileglob:
+#     - roles/binary_package/kubernetes-server-linux-amd64.tar.gz
+
+- name: copy kube-scheduler
+  copy: src={{item}} dest=/usr/local/bin mode=0777
+  with_fileglob:
+    - roles/binary_package/kubernetes/server/bin/kube-scheduler
+
+- name: Copy the certificate
+  copy: src=roles/cfssl/generate_files/{{item}} dest=/etc/kubernetes/
+  with_items:
+    - kube-scheduler.kubeconfig
+
+- name: Generate kube-scheduler.service file
+  template: src=kube-scheduler.service.j2 dest=/usr/lib/systemd/system/kube-scheduler.service
+
+- name: Start the kube-scheduler
+  service: daemon_reload=yes name=kube-scheduler state=restarted enabled=yes
+
+
