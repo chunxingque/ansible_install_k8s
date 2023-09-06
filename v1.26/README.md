@@ -309,76 +309,7 @@ kubectl get svc
 
 curl  http://ip:30080
 
-### ingress-nginx
 
-#### helm方式安装
-
-使用helm安装ingress-nginx
-
-nodeport方式，80端口访问
-
-```
-cd plugins/ingress-nginx
-kubectl apply -f helm_install_ingress.sh
-```
-
-#### 测试
-
-```
-kubectl apply -f ../nginx/nginx.yaml
-kubectl apply -f ../nginx/nginx_ingress.yaml
-```
-
-### nfs-subdir-external-provisioner
-
-使用nfs-subdir-external-provisioner作为k8s的可持续存储，存储数据
-
-前提：
-
-* 配置好nfs服务器
-* 每个节点安装好nfs客户端
-
-切换到nfs-subdir-external-provisioner目录
-
-```
-cd plugins/nfs-subdir-external-provisioner
-```
-
-挂载nfs的logs目录,修改nfs-logs.sh的nfs的ip和路径，再执行脚本
-
-```
-sh nfs-logs.sh
-```
-
-测试
-
-```
-kubectl apply -f nfs-k8s-logs-storageclass-dev.yaml
-kubectl apply -f pvc-logs-dev.yaml
-```
-
-### kube-prometheus
-
-k8s集群监控
-
-替换镜像，镜像为本地代理镜像，如需替换镜像，请自行修改
-
-```
-cd plugins/kube-prometheus
-sh modify_image.sh
-```
-
-kube-prometheus安装
-
-```
-sh kube-prometheus_install.sh
-```
-
-使用nodePort访问prometheus
-
-```
-sh modify_services.sh
-```
 
 ## 增加node节点
 

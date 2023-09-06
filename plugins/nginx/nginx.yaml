@@ -1,0 +1,62 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    k8s.kuboard.cn/displayName: nginx
+  labels:
+    app: nginx
+    k8s.kuboard.cn/name: nginx
+  name: nginx
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+      k8s.kuboard.cn/name: nginx
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: nginx
+        k8s.kuboard.cn/name: nginx
+    spec:
+      containers:
+        - image: '192.168.15.124/proxy/library/nginx:latest'
+          imagePullPolicy: Always
+          name: nginx
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          resources: {}
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations: {}
+  labels:
+    app: nginx
+    k8s.kuboard.cn/name: nginx
+  name: nginx
+  namespace: default
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+    - name: znzax8
+      nodePort: 30080
+      port: 80
+      protocol: TCP
+      targetPort: 80
+  selector:
+    app: nginx
+    k8s.kuboard.cn/name: nginx
+  sessionAffinity: None
+  type: NodePort
