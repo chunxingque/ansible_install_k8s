@@ -172,7 +172,7 @@ systemctl status haproxy -l
 检查master组件是否安装好
 
 ```
-systemctl status kube-apiserver
+systemctl status kube-apiserver -l
 systemctl status kube-controller-manager -l
 systemctl status kube-scheduler -l
 kubectl get cs
@@ -211,6 +211,8 @@ master上检查是否加入集群
 ```
 kubectl get nodes
 ```
+
+
 
 ## k8s插件安装
 
@@ -309,8 +311,6 @@ kubectl get svc
 
 curl  http://ip:30080
 
-
-
 ## 增加node节点
 
 主机配置上添加新节点
@@ -327,6 +327,8 @@ add_server_group:
      ip: 192.168.15.244
 
 ```
+
+
 
 node_server列表中添加主机
 
@@ -387,7 +389,6 @@ systemctl status kube-proxy -l
 tail -200f /var/log/messages
 
 
-
 ```
 
 master上检查是否加入集群，cni组件是否安装正常，cni组件：cilium或者calico
@@ -396,6 +397,8 @@ master上检查是否加入集群，cni组件是否安装正常，cni组件：ci
 kubectl get nodes
 kubectl get pods  -o wide -n kube-system
 ```
+
+
 
 ## 更新自签名证书
 

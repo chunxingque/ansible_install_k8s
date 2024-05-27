@@ -1,0 +1,17 @@
+controller: 
+  image:
+    registry: 192.168.15.124/k8s
+  admissionWebhooks: 
+    port: 7443
+    patch: 
+      image: 
+        registry: 192.168.15.124/k8s
+  kind: DaemonSet
+  hostNetwork: true
+  nodeSelector: 
+    ingress: nginx
+  addHeaders: 
+    compute-full-forwarded-for: "true"
+    forwarded-for-header: X-Forwarded-For
+    use-forwarded-headers: "true"
+    

@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: elastic-filebeat
+  namespace: default
+  labels:
+    server: elastic-filebeat
+spec:
+  selector:
+    matchLabels:
+      name: elastic-filebeat
+  template:
+    metadata:
+      labels:
+        name: elastic-filebeat
+    spec:
+      containers:
+      - image: elastic/filebeat:7.17.18
+        name: elastic-filebeat
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
+          fsGroup: 0
+        volumeMounts:
+        - mountPath: /usr/share/filebeat/data
+          name: fb-data
+        - mountPath: /var/Log
+          name: fb-log
+        - mountPath: /usr/share/filebeat/filebeat.yml
+          subPath: filebeat.yml
+          name: cfg
+          readOnly: true
+      volumes:
+      - name: fb-data
+        hostPath:
+          path: /usr/share/filebeat/data
+      - name: fb-log
+        hostPath:
+          path: /var/Log
+      - name: cfg
+        configMap:
+          name: filebeat-config
+          items:
+          - key: config
+            path: filebeat.yml

@@ -8,3 +8,5 @@ tar zxvf cilium-*.tgz
 sed -i "s#quay.io#192.168.15.124\/quay-io#g" ./cilium/values.yaml
 # 安装cilium
 helm install cilium ./cilium --namespace kube-system
+
+

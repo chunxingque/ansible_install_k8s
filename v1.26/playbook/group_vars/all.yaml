@@ -8,7 +8,7 @@ vip: 192.168.15.140
 ha_port: 8443
 # keepalive virtual_router_id
 virtual_router_id: 82
-# 网卡
+# keepalive 网卡
 network_card: "ens192"
 # kubelet的token，默认即可，会自动修改
 token_id: "81912e"
