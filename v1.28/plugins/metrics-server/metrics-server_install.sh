@@ -33,7 +33,7 @@ EOF
 sed -i '/volumes:/r temp.txt' components_modify.yaml
 
 #修改镜像 192.168.15.124/aliyuncs/google_containers/metrics-server替换registry.k8s.io/metrics-server/metrics-server镜像
-sed -i 's#registry.k8s.io\/metrics-server\/metrics-server#192.168.15.124\/aliyuncs\/google_containers\/metrics-server#g'  components_modify.yaml
+sed -i 's#registry.k8s.io/metrics-server/metrics-server#192.168.15.124/aliyuncs/google_containers/metrics-server#g'  components_modify.yaml
 kubectl apply -f components_modify.yaml
 
 # 检查
