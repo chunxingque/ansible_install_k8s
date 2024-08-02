@@ -1,0 +1,31 @@
+---
+# 更新etcd的ssl
+- hosts: etcd
+  remote_user: root
+  gather_facts: false
+  tags: etcd_ssl
+  tasks:
+    - name: Copy the certificate
+      copy: src=roles/cfssl/generate_files/{{item}} dest=/etc/etcd/ssl/
+      with_items:
+      - etcd-ca.pem
+      - etcd-ca-key.pem
+      - etcd.pem
+      - etcd-key.pem
+    - name: restart the etcd
+      service: daemon_reload=yes name=etcd state=restarted  enabled=yes
+
+# 更新kube-apiserver的etcd证书
+- hosts: master
+  remote_user: root
+  gather_facts: false
+  tags: apiserver_ssl
+  tasks:
+  - name: update etcd certificate
+    copy: src=roles/etcd/generate_files/{{item}} dest=/etc/kubernetes/pki/
+    with_items:
+      - etcd-ca.pem
+      - etcd.pem
+      - etcd-key.pem
+  - name: Start the kube-apiserver
+    service: daemon_reload=yes name=kube-apiserver state=restarted enabled=yes

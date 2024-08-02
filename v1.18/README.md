@@ -23,7 +23,7 @@ ansible部署k8s集群,适用于1.8版本
 
 任务：
 
-1. 在所有服务器上，初始化服务器环境，添加hosts,关闭防火墙、swap和selinux,配置nptdate时间同步
+1. 在所有服务器上，初始化服务器环境，添加hosts,关闭防火墙、swap和selinux,配置时间同步
 2. 在所有服务器上，设置hostname
 3. 在所有服务器上，安装docker
 4. 在master服务器上，安装管理k8s的命令工具，helm，kubectl，kubeadm，cfssl

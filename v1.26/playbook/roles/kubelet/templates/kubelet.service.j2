@@ -1,6 +1,6 @@
 [Unit]
 Description=Kubernetes Kubelet
-After=docker.service
+After=containerd.service
 
 [Service]
 ExecStart=/usr/local/bin/kubelet --hostname-override={{node_name}} \

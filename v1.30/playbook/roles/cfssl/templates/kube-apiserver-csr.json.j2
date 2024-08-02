@@ -1,0 +1,27 @@
+{
+    "CN": "kube-apiserver",
+    "hosts": [
+      "127.0.0.1",
+      {% for ip in SSL_hosts.k8s -%}
+        "{{ip}}",
+      {% endfor -%}
+      "kubernetes",
+      "kubernetes.default",
+      "kubernetes.default.svc",
+      "kubernetes.default.svc.cluster",
+      "kubernetes.default.svc.cluster.local"
+    ],
+    "key": {
+        "algo": "rsa",
+        "size": 2048
+    },
+    "names": [
+        {
+            "C": "CN",
+            "L": "BeiJing",
+            "ST": "BeiJing",
+            "O": "Kubernetes",
+            "OU": "Kubernetes-manual"
+        }
+    ]
+}

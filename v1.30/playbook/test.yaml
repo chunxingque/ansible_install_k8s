@@ -1,0 +1,13 @@
+---
+- hosts: localhost
+  remote_user: root
+  gather_facts: F
+
+  tasks:
+    - name: "unzip {{ssh_port}} kubectl"
+      shell: "echo {{ssh_port}}"
+      register: test
+
+    - name: debug
+      debug:
+        var: test.stdout_lines

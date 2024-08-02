@@ -26,15 +26,12 @@ cd ingress-nginx
 kubectl apply -f helm_install_ingress.sh
 ```
 
-
-
 #### DaemonSet+hostNetwork+nodeSelector
 
-此方案的主要的目的： 
+此方案的主要的目的：
 
 * 使用host网络可以使请求直接转发到ingress-nginx，减少转发的步骤；
 * 通过ingress地址直接访问后端应用，后端应用可以获取到客户端的真实IP；
-
 
 先打标签，确认ingress-nginx部署到节点
 
@@ -48,8 +45,6 @@ controller.admissionWebhooks.port默认8443，可能会与k8s集群的haproxy代
 
 addHeaders参数主要添加记录客户端IP的配置参数，目的是为了让后端程序获取到客户端的真实IP
 
-
-
 然后执行脚本
 
 ```
@@ -57,16 +52,12 @@ cd ingress-nginx
 kubectl apply -f helm_install_ingress_v2.sh
 ```
 
-
-
 ### 测试
 
 ```
 kubectl apply -f ../nginx/nginx.yaml
 kubectl apply -f ../nginx/nginx_ingress.yaml
 ```
-
-
 
 ## nfs-subdir-external-provisioner
 
@@ -124,6 +115,17 @@ sh kube-prometheus_install.sh
 ```
 sh modify_services.sh
 ```
+
+修改grafana配置
+
+```
+sh grafana_config.sh
+```
+
+修改内容
+
+- 修改时区，UTC修改为CST
+
 
 #### 告警配置
 

@@ -1,0 +1,55 @@
+
+---
+- name: Generate the kubelet_kubeconfig.sh file
+  template: src=kubelet_kubeconfig.sh.j2 dest=roles/node_kubeconfig/generate_files/kubelet_kubeconfig.sh mode=0777
+
+- name: run kubelet_kubeconfig.sh
+  shell: cd roles/node_kubeconfig/generate_files && /bin/bash kubelet_kubeconfig.sh
+  register: output
+- debug:
+    var: output.stdout_lines
+
+- name: Generate the kubelet_bootstrap.secret.yaml file
+  template: src=kubelet_bootstrap.secret.yaml.j2 dest=roles/node_kubeconfig/generate_files/kubelet_bootstrap.secret.yaml mode=0777
+
+- name: apply kubelet_bootstrap.secret.yaml
+  shell: "kubectl apply -f {{item}}"
+  with_fileglob:
+  - roles/node_kubeconfig/generate_files/kubelet_bootstrap.secret.yaml
+  register: output
+- debug:
+    msg: "{{output.results[0].stdout_lines}}"
+
+- name: apply auto-apporove-csr.yaml
+  shell: "kubectl apply -f {{item}}"
+  with_fileglob:
+  - roles/node_kubeconfig/files/auto-apporove-csr.yaml
+  register: output
+- debug:
+    msg: "{{output.results[0].stdout_lines}}"
+
+- name: apiserver to kubelet rbac
+  shell: "kubectl apply -f {{item}}"
+  with_fileglob:
+  - roles/node_kubeconfig/files/apiserver-to-kubelet-rbac.yaml
+  register: output
+- debug:
+    msg: "{{output.results[0].stdout_lines}}"
+
+- name: apply kube-proxy-auth.yaml
+  shell: "kubectl apply -f {{item}}"
+  with_fileglob:
+  - roles/node_kubeconfig/files/kube-proxy-auth.yaml
+  register: output
+- debug:
+    msg: "{{output.results[0].stdout_lines}}"
+
+
+- name: Generate the kube-proxy_kubeconfig.sh file
+  template: src=kube-proxy_kubeconfig.sh.j2 dest=roles/node_kubeconfig/generate_files/kube-proxy_kubeconfig.sh mode=0777
+
+- name: run kube-proxy_kubeconfig.sh
+  shell: cd roles/node_kubeconfig/generate_files && /bin/bash kube-proxy_kubeconfig.sh
+  register: output
+- debug:
+    var: output.stdout_lines

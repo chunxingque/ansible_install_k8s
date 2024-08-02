@@ -1,0 +1,95 @@
+---
+- hosts: localhost
+  remote_user: root
+  gather_facts: false
+  tags: unzip_package
+  tasks:
+  - name: Unzip kubernetes-server-linux-amd64.tar.gz
+    shell: cd roles/binary_package/ && tar zxvf kubernetes-server-linux-amd64.tar.gz
+  - name: Unzip helm
+    shell: cd roles/binary_package/ && tar zxvf helm*.tar.gz
+
+  - name: mkdir etcd
+    file:
+      path: roles/binary_package/etcd
+      state: directory
+  - name: Unzip etcd
+    shell: cd roles/binary_package/ && tar -zxf etcd-*.tar.gz --strip-components=1 -C ./etcd
+  
+- hosts: master
+  remote_user: root
+  gather_facts: false
+  roles:
+    - k8s_command
+  tags: k8s_command
+
+- hosts: localhost
+  remote_user: root
+  gather_facts: false
+  vars:
+  - cert: etcd
+  roles:
+    - cfssl
+  tags: cfssl-etcd
+
+- hosts: localhost
+  remote_user: root
+  gather_facts: false
+  vars:
+  - cert: k8s
+  roles:
+    - cfssl
+  tags: cfssl-k8s
+
+- hosts: etcd
+  remote_user: root
+  gather_facts: false
+  roles:
+    - etcd
+  tags: etcd
+
+- hosts: master
+  remote_user: root
+  gather_facts: false
+  roles:
+    - kube-apiserver
+  tags: kube-apiserver
+
+- hosts: master
+  remote_user: root
+  gather_facts: false
+  roles:
+    - kubectl
+  tags: kubectl
+
+- hosts: ha
+  remote_user: root
+  gather_facts: false
+  roles:
+    - haproxy
+  tags: haproxy
+
+- hosts: ha
+  remote_user: root
+  gather_facts: false
+  roles:
+    - keepalived
+  tags: keepalived
+
+
+- hosts: master
+  remote_user: root
+  gather_facts: false
+  roles:
+    - kube-controller-manager
+  tags: kube-controller-manager
+
+- hosts: master
+  remote_user: root
+  gather_facts: false
+  roles:
+    - kube-scheduler
+  tags: kube-scheduler
+
+
+

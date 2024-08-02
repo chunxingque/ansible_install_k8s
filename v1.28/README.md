@@ -9,11 +9,9 @@ ansible部署二进制k8s集群,适用于1.28.x版本
 3. 安装或者添加node节点
 4. 更新自签证书
 
-
 部署变化：
 
 * 相较与v1.27版本, 组件的运行参数无变化
-
 
 # 使用说明
 
@@ -26,7 +24,6 @@ ansible部署二进制k8s集群,适用于1.28.x版本
 注意：
 
 * 仅在centos7.9内核为5.4上测试，建议系统内核通过elrepo升级到5.4
-
 
 所有节点所需的rpm包，可以提前手动安装以下rpm包
 
@@ -55,14 +52,11 @@ nfs
 yum install nfs-utils rpcbind
 ```
 
-
-
 ## 集群配置
 
 需要配置master和node等信息,请根据模板配置
 
 配置文件：playbook/group_vars/all.yaml
-
 
 ## 二进制包与镜像文件
 
@@ -124,7 +118,7 @@ sh 2_manage_config.sh
 
 任务：
 
-1. 在所有服务器上，初始化服务器环境，添加hosts,关闭防火墙、swap和selinux,配置nptdate时间同步
+1. 在所有服务器上，初始化服务器环境，添加hosts,关闭防火墙、swap和selinux,配置时间同步
 2. 在所有服务器上，设置hostname
 3. 在所有服务器上，安装containerd
 4. 在master服务器上，安装管理k8s的命令工具，helm，kubectl，kubeadm，cfssl
@@ -194,8 +188,6 @@ kubectl get cs
 tail -200f /var/log/messages
 ```
 
-
-
 ### node组件安装
 
 node组件安装
@@ -224,8 +216,6 @@ master上检查是否加入集群
 kubectl get nodes
 ```
 
-
-
 ## k8s插件安装
 
 注意：k8s插件安装，请先读脚本，再根据实际情况执行，因为有些要下载文件，可能因为网络问题无法下载，需要手动下载；有些镜像无法拉取，需要修改成可以的拉取镜像。
@@ -236,8 +226,6 @@ cilium和calico都是pod跨主机网络通信的插件，选一个即可
 
 * calico： 比较稳定
 * cilium： 基于ebpf，内核要求Linux kernel >= 4.9.17，性能比较好，功能强大
-
-
 
 #### cilium
 
@@ -260,8 +248,6 @@ sh hubble_install.sh
 kubectl get pods -o wide -n kube-system
 ```
 
-
-
 #### calico
 
 容器跨主机网络通信
@@ -272,8 +258,6 @@ kubectl get pods -o wide -n kube-system
 cd plugins/calico
 sh calico_install.sh
 ```
-
-
 
 ### coredns
 
@@ -292,8 +276,6 @@ sh coredns_install.sh
 kubectl get pods -o wide -n kube-system
 ```
 
-
-
 ### metrics-server
 
 k8s监控指标,安装前请查看脚本，需要修改镜像
@@ -310,8 +292,6 @@ kubectl get pods -o wide -n kube-system
 kubectl logs -f --tail 200 metrics-server-xx  -n kube-system
 kubectl top nodes
 ```
-
-
 
 ### nginx
 
@@ -358,7 +338,7 @@ node_server:
     ip: 192.168.15.244
 ```
 
-可以在新节点添加成功后再添加；如何添加节点失败，记得删除。
+注意：需要检查node_server的节点是否有节点已经被删除出集群，如果有需要删除该配置可以在新节点添加成功后再添加；如何添加节点失败，记得删
 
 作用：
 

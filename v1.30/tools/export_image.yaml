@@ -1,0 +1,32 @@
+- hosts: 192.168.15.125
+  remote_user: root
+  gather_facts: false
+  tasks:
+  - name: pull images
+    shell: "/usr/bin/docker pull {{ item }}"
+    loop:
+    - registry.aliyuncs.com/k8sxio/pause:3.8
+    - docker.io/calico/cni:v3.24.5
+    - docker.io/calico/node:v3.24.5
+    - docker.io/calico/kube-controllers:v3.24.5
+
+  - name: export pause images
+    shell: /usr/bin/docker save -o /tmp/pause.tar registry.aliyuncs.com/k8sxio/pause:3.8
+  
+  - name: export calico images
+    shell: /usr/bin/docker save -o /tmp/{{ item }}.tar docker.io/calico/{{ item }}:v3.24.5
+    loop:
+    - cni
+    - node
+    - kube-controllers
+  
+  - name: fetch images
+    fetch: 
+      src: "/tmp/{{ item }}"
+      dest: "../playbook/roles/binary_package/"
+      flat: true
+    loop:
+    - pause.tar
+    - node.tar
+    - cni.tar
+    - kube-controllers.tar

@@ -118,7 +118,7 @@ sh 2_manage_config.sh
 
 任务：
 
-1. 在所有服务器上，初始化服务器环境，添加hosts,关闭防火墙、swap和selinux,配置nptdate时间同步
+1. 在所有服务器上，初始化服务器环境，添加hosts,关闭防火墙、swap和selinux,配置时间同步
 2. 在所有服务器上，设置hostname
 3. 在所有服务器上，安装containerd
 4. 在master服务器上，安装管理k8s的命令工具，helm，kubectl，kubeadm，cfssl
@@ -313,7 +313,6 @@ kubectl get svc
 
 curl  http://ip:30080
 
-
 ## 增加node节点
 
 主机配置上添加新节点
@@ -339,7 +338,7 @@ node_server:
     ip: 192.168.15.244
 ```
 
-可以在新节点添加成功后再添加；如何添加节点失败，记得删除。
+注意：需要检查node_server的节点是否有节点已经被删除出集群，如果有需要删除该配置可以在新节点添加成功后再添加；如何添加节点失败，记得删
 
 作用：
 

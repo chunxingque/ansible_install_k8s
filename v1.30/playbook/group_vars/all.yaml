@@ -1,0 +1,121 @@
+---
+## ssh配置
+server_user: root
+server_passwd: ""
+ssh_port: 22
+
+## 高可用与负载均衡配置
+# keepalive的vip
+vip: 192.168.15.140
+# haproxy负载均衡端口
+ha_port: 8443
+# keepalive virtual_router_id
+virtual_router_id: 82
+# keepalive 网卡
+network_card: "ens192"
+
+# kubelet的token，默认即可，会自动修改
+token_id: "81912e"
+token_secret: "1ab3a1fb1f989375"
+# pods ip地址范围,默认即可
+cluster_cidr: '10.100.0.0/16'
+# service ip地址范围,默认即可
+service_cluster_ip_range: '10.200.0.0/16'
+# dns,默认即可
+cluster_dns: '10.200.0.2'
+
+## containerd 配置
+# containerd pause镜像地址,建议使用私有仓库地址
+# 官方默认镜像：registry.k8s.io/pause:3.8
+pause_image: "registry.aliyuncs.com/k8sxio/pause:3.8"
+# containerd私有仓库
+registry:
+  enable: true
+  registry_name: 192.168.15.124
+  registry_addr: http://192.168.15.124
+  auth:
+    enable: false
+    username: admin
+    password: "YOUR_HARBOR_PASSWORD"
+
+# master服务器
+master_server:
+  - name: k8s-master1
+    ip: 192.168.15.134
+  - name: k8s-master2
+    ip: 192.168.15.135
+  - name: k8s-master3
+    ip: 192.168.15.136
+
+# node服务器
+# 为空时,必须写以下形式
+# node_server: []
+node_server:
+  - name: k8s-node1
+    ip: 192.168.15.137
+  - name: k8s-node2
+    ip: 192.168.15.138
+  - name: k8s-node3
+    ip: 192.168.15.139
+
+
+# etcd_server服务器
+etcd_server:
+  - name: etcd1
+    ip: 192.168.15.134
+  - name: etcd2
+    ip: 192.168.15.135
+  - name: etcd3
+    ip: 192.168.15.136
+
+# keepalived
+ha_server:
+  - name: k8s-master1
+    ip: 192.168.15.134
+    state: MASTER
+    priority: 200
+  - name: k8s-master2
+    ip: 192.168.15.135
+    state: BACKUP
+    priority: 180
+  - name: k8s-master3
+    ip: 192.168.15.136
+    state: BACKUP
+    priority: 160
+
+# ssl证书hosts,kube-apiserver和etcd服务ip限制
+# 建议多添加几个ip，方便以后扩容
+SSL_hosts:
+  # ssl_hosts.k8s必须填入service-cluster、master和vip的ip
+  k8s:
+    - 10.200.0.1
+    - 192.168.15.134
+    - 192.168.15.135
+    - 192.168.15.136
+    - 192.168.15.137
+    - 192.168.15.138
+    - 192.168.15.139
+    - 192.168.15.140
+  # ssl_hosts.etcd必须填入etcd的ip
+  etcd:
+    - 192.168.15.134
+    - 192.168.15.135
+    - 192.168.15.136
+    - 192.168.15.137
+    - 192.168.15.138
+    - 192.168.15.139
+
+# 时间同步配置
+chrony:
+  allow_network: 192.168.15.0/24
+  # 集群chrony server服务器
+  server: 192.168.15.134
+  # 集群chrony server服务器的ntp
+  ntp_servers:
+    - 192.168.15.92
+
+# 新增node服务器
+add_server_group: []
+# add_server_group:
+#   - name: k8s-node1
+#     ip: 192.168.15.141

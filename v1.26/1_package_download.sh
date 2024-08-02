@@ -1,4 +1,7 @@
 #!/bin/bash
+
+mode=${1:-download}
+
 package_dir="playbook/roles/binary_package"
 
 
@@ -16,10 +19,16 @@ fi
 download_file() {
     url=$1
     file_name=$2
-    if [ ! -f "$package_dir/$file_name" ];then
-        wget $url -O  $package_dir/$file_name
+    file_path=$package_dir/$file_name
+    
+    if [ ! -f "$file_path" ];then
+        if [ $mode == "check" ];then
+            echo -e "\033[31m ${file_path} 文件不存在，请手动下载：${url} \033[0m"
+        else
+            wget $url -O  ${file_path}
+        fi
     else
-        echo $file_name 已存在
+        echo -e "\e[32m ${file_path} 文件已存在 \e[0m"
     fi
 }
 
@@ -34,6 +43,5 @@ download_file https://github.com/etcd-io/etcd/releases/download/v3.5.9/etcd-v3.5
 download_file https://github.com/cloudflare/cfssl/releases/download/v1.6.4/cfssl_1.6.4_linux_amd64 cfssl
 download_file https://github.com/cloudflare/cfssl/releases/download/v1.6.4/cfssljson_1.6.4_linux_amd64 cfssljson
 download_file https://github.com/cloudflare/cfssl/releases/download/v1.6.4/cfssl-certinfo_1.6.4_linux_amd64 cfssl-certinfo
-# download_file http://rpmfind.net/linux/centos/7.9.2009/os/x86_64/Packages/chrony-3.4-1.el7.x86_64.rpm chrony-3.4-1.el7.x86_64.rpm
 download_file https://get.helm.sh/helm-v3.12.1-linux-amd64.tar.gz helm-v3.12.1-linux-amd64.tar.gz
 

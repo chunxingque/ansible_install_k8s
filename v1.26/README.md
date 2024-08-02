@@ -68,35 +68,32 @@ yum install nfs-utils rpcbind
 2. etcdctl二进制包： https://github.com/etcd-io/etcd/releases
 3. containerd二进制包： https://github.com/containerd/containerd/releases
 4. runc二进制包： https://github.com/opencontainers/runc/releases
-5. crictl二进制包： https://github.com/kubernetes-sigs/cri-tools/releases
-6. cni插件二进制包：https://github.com/containernetworking/plugins/releases
-7. cfssl二进制包：https://github.com/cloudflare/cfssl/releases
+5. cni插件二进制包：https://github.com/containernetworking/plugins/releases
+6. cfssl二进制包：https://github.com/cloudflare/cfssl/releases
+7. helm二进制包：https://github.com/helm/helm/releases
 8. docker二进制包：https://download.docker.com/linux/static/stable/x86_64/
 9. cri-docker二进制包：https://github.com/Mirantis/cri-dockerd/releases
+10. crictl二进制包： https://github.com/kubernetes-sigs/cri-tools/releases
 
 ### 脚本下载二进制包
 
 使用脚本下载相关二进制包
 
 ```
-sh 1-1_download.sh
+sh 1_package_download.sh
 ```
-
-### 导入镜像文件
-
-需要导入pause镜像和calico的镜像，请安装完docker或者containerd后手动导入镜像文件，或者从其他机器拉取导入镜像文件，导入命令请参考tools
 
 ### 检查二进制包和镜像文件
 
 检查二进制包是否下载完
 
 ```
-sh 1-2_package_check.sh
+sh 1_package_download.sh check
 ```
 
 ## 管理主机配置
 
-命令：
+执行命令：
 
 ```
 sh 2_manage_config.sh
@@ -105,20 +102,18 @@ sh 2_manage_config.sh
 在本机上执行以下任务：
 
 1. 安装ansible
-2. 生成 ansible hosts
-3. 生成主机hosts_k8s
-4. 生成ssh秘钥
-5. 管理机对所有节点进行ssh免密认证
+2. 生成 ansible的hosts文件
+3. 生成ssh秘钥
+4. 管理机对所有节点进行ssh免密认证
 
 ## 节点初始化配置
 
 任务：
 
-1. 在所有服务器上，初始化服务器环境，添加hosts,关闭防火墙、swap和selinux,配置nptdate时间同步
+1. 在所有服务器上，初始化服务器环境，添加hosts,关闭防火墙、swap和selinux,配置时间同步
 2. 在所有服务器上，设置hostname
 3. 在所有服务器上，安装containerd
-4. 在master服务器上，安装管理k8s的命令工具，helm，kubectl，kubeadm，cfssl
-5. 重启所有服务器
+4. 重启所有服务器
 
 执行脚本
 
@@ -140,10 +135,12 @@ systemctl status containerd -l
 
 部署k8s集群(二进制部署)
 
-1. cfssl生成etcd证书和k8s证书，证书过期日期为100年
-2. 部署ETCD集群
-3. 部署master插件：kube-apiserver、kube-controller-manager、kube-scheduler
-4. 部署高可用的haproxy、keepalived
+1. 解压软件的一些二进制包
+2. 在master服务器上，安装管理k8s的命令工具，helm，kubectl，kubeadm，cfssl
+3. cfssl生成etcd证书和k8s证书，证书过期日期为100年
+4. 部署ETCD集群
+5. 部署master插件：kube-apiserver、kube-controller-manager、kube-scheduler
+6. 部署高可用的haproxy、keepalived
 
 执行脚本
 
@@ -172,7 +169,7 @@ systemctl status haproxy -l
 检查master组件是否安装好
 
 ```
-systemctl status kube-apiserver -l
+systemctl status kube-apiserver
 systemctl status kube-controller-manager -l
 systemctl status kube-scheduler -l
 kubectl get cs
@@ -211,8 +208,6 @@ master上检查是否加入集群
 ```
 kubectl get nodes
 ```
-
-
 
 ## k8s插件安装
 
@@ -328,8 +323,6 @@ add_server_group:
 
 ```
 
-
-
 node_server列表中添加主机
 
 ```
@@ -338,7 +331,7 @@ node_server:
     ip: 192.168.15.244
 ```
 
-可以在新节点添加成功后再添加；如何添加节点失败，记得删除。
+注意：需要检查node_server的节点是否有节点已经被删除出集群，如果有需要删除该配置可以在新节点添加成功后再添加；如何添加节点失败，记得删
 
 作用：
 
@@ -389,6 +382,7 @@ systemctl status kube-proxy -l
 tail -200f /var/log/messages
 
 
+
 ```
 
 master上检查是否加入集群，cni组件是否安装正常，cni组件：cilium或者calico
@@ -397,8 +391,6 @@ master上检查是否加入集群，cni组件是否安装正常，cni组件：ci
 kubectl get nodes
 kubectl get pods  -o wide -n kube-system
 ```
-
-
 
 ## 更新自签名证书
 
