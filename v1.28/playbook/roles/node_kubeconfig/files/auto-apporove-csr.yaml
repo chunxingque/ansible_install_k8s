@@ -1,6 +1,6 @@
 ---
 # create-csrs-for-bootstrapping.yaml
-# 授权"xx"组的kubelet创建CSR
+# 授权"xx"组的kubelet创建客户证书的CSR
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -16,7 +16,7 @@ roleRef:
 
 ---
 # auto-approve-csrs-for-group.yaml
-# 未加入集群中的kubelet新证书申请批复, 自动批复xx组的CSR并生成新证书
+# kubelet新客户证书申请批复, 自动批复xx组的CSR并生成新证书
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -32,7 +32,7 @@ roleRef:
 
 ---
 # auto-approve-renewals-for-nodes.yaml
-# 已加入集群中的kubelet旧证书续期批复, 自动批复xx组的CSR并对旧证书进行续约
+# kubelet旧客户证书续期批复, 自动批复xx组的CSR并对旧证书进行续约
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:

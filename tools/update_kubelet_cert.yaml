@@ -1,0 +1,31 @@
+- hosts: 
+  - 192.168.15.209
+  remote_user: root
+  gather_facts: false
+  vars:
+    - cert_dir: /etc/kubernetes/pki
+
+  tasks:
+    - name: delete kubelet server kubelet.crt
+      file:
+        path: "{{ cert_dir }}/kubelet.crt"
+        state: absent
+    
+    - name: delete kubelet server kubelet.key
+      file:
+        path: "{{ cert_dir }}/kubelet.key"
+        state: absent
+    
+    - name: delete kubelet client kubelet-client-current.pem
+      file:
+        path: "{{ cert_dir }}/kubelet-client-current.pem"
+        state: absent
+    
+    - name: restart kubelet
+      service: 
+        name: kubelet
+        state: restarted
+        daemon_reload: true
+        enabled: true
+
+ 
