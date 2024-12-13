@@ -5,18 +5,18 @@ snapshot-count: 5000
 heartbeat-interval: 100
 election-timeout: 1000
 quota-backend-bytes: 0
-listen-peer-urls: 'https://{{ inventory_hostname }}:2380'
-listen-client-urls: 'https://{{ inventory_hostname }}:2379,https://127.0.0.1:2379'
+listen-peer-urls: 'https://{{ ansible_host }}:2380'
+listen-client-urls: 'https://{{ ansible_host }}:2379,https://127.0.0.1:2379'
 max-snapshots: 3
 max-wals: 5
 cors:
-initial-advertise-peer-urls: 'https://{{ inventory_hostname }}:2380'
-advertise-client-urls: 'https://{{ inventory_hostname }}:2379'
+initial-advertise-peer-urls: 'https://{{ ansible_host }}:2380'
+advertise-client-urls: 'https://{{ ansible_host }}:2379'
 discovery:
 discovery-fallback: 'proxy'
 discovery-proxy:
 discovery-srv:
-initial-cluster: '{% for host in groups['etcd'] %}{{ hostvars[host].etcd_name }}=https://{{ hostvars[host].inventory_hostname }}:2380{% if not loop.last %},{% endif %}{% endfor %}'
+initial-cluster: '{% for host in groups['etcd'] %}{{ hostvars[host].etcd_name }}=https://{{ hostvars[host].ansible_host }}:2380{% if not loop.last %},{% endif %}{% endfor %}'
 initial-cluster-token: 'etcd-k8s-cluster'
 initial-cluster-state: 'new'
 strict-reconfig-check: false

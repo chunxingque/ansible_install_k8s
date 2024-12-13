@@ -1,8 +1,8 @@
-{% set local_ip = inventory_hostname %}
+{% set local_ip = ansible_host %}
 KUBE_APISERVER_OPTS="--logtostderr=false \
 --v=2 \
 --log-dir={{install_dir}}/kube-apiserver/logs \
---etcd-servers={% for host in groups['etcd'] %}https://{{ hostvars[host].inventory_hostname }}:2379{% if not loop.last %},{% endif %}{% endfor %} \
+--etcd-servers={% for host in groups['etcd'] %}https://{{ hostvars[host].ansible_host }}:2379{% if not loop.last %},{% endif %}{% endfor %} \
 --bind-address={{local_ip}} \
 --secure-port=6443 \
 --advertise-address={{local_ip}} \

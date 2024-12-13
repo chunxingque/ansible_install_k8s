@@ -6,11 +6,11 @@
 
 - name: config chrony server
   template: src=server.conf.j2 dest=/etc/chrony.conf
-  when: 'inventory_hostname == chrony.server'
+  when: 'ansible_host == chrony.server'
 
 - name: config chrony client
   template: src=client.conf.j2 dest=/etc/chrony.conf
-  when: 'inventory_hostname != chrony.server'
+  when: 'ansible_host != chrony.server'
 
 - name: service chronyd
   service: 

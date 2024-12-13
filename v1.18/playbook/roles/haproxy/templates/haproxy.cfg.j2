@@ -47,5 +47,5 @@ backend kube-apiserver
     mode        tcp             # 修改为tcp
     balance     roundrobin
     {% for host in groups['master'] %}
-        server {{ hostvars[host].node_name }} {{ hostvars[host].inventory_hostname }}:6443 check
+        server {{ hostvars[host].node_name }} {{ hostvars[host].ansible_host }}:6443 check
     {% endfor %}
